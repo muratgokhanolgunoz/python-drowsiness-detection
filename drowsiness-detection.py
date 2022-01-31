@@ -8,7 +8,6 @@ import pyscreenshot
 from datetime import datetime
 import os
 
-
 def eye_aspect_ratio(eye):
     # Creating eye contour coordinates
     A = distance.euclidean(eye[1], eye[5])
@@ -19,7 +18,8 @@ def eye_aspect_ratio(eye):
     ear = (A + B) / (2 * C)
     return ear
 
-programs = []
+programs = ["chrome.exe", "firefox.exe", "WhatsApp.exe", "TeamViewer.exe", "POWERPNT.EXE", "EXCEL.EXE", "MSACCESS.EXE"]
+
 f = wmi.WMI()
 
 # The value of the angle of the eye
@@ -38,7 +38,7 @@ flag = 0
 
 while True:
     ret, frame = cap.read()
-    frame = imutils.resize(frame, width=700)
+    frame = imutils.resize(frame, width=1000)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     subjects = detect(gray, 0)
     for subject in subjects:
@@ -56,8 +56,8 @@ while True:
         leftEyeHull = cv2.convexHull(leftEye)
         rightEyeHull = cv2.convexHull(rightEye)
 
-        cv2.drawContours(frame, [leftEyeHull], -1, (255, 0, 0), 2)
-        cv2.drawContours(frame, [rightEyeHull], -1, (255, 0, 0), 2)
+        cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
+        cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
 
         if ear < thresh:
             flag += 1
@@ -67,21 +67,24 @@ while True:
                 image = pyscreenshot.grab()
 
                 # To display the captured screenshot
-                # image.show()
+                image.show()
 
                 # To save the screenshot
                 # Get current datetime from filename
                 filename = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                 image.save("./screenshots/screenshot-%s.png" % filename)
-                # print(f"{datetime.now()} ==> Take screenshot")
+                print(f"{datetime.now()} ==> Take screenshot")
 
                 #  Retrieving currently running programs in the operating system
                 for process in f.Win32_Process():
-                    # os.system(f"TASKKILL /F /IM {process.Name}")
-                    # programs.append(process.Name)
-                    print(f"{process.ProcessId} => {process.Name}");
+                    # print(f"{process.Name}")
+                    for program in programs:
+                        if(program == process.Name):
+                            print(f"=> {process.Name} closing ....")
+                            os.system(f"TASKKILL /F /IM {process.Name}")  
+                            break
                     
-                # os.system("shutdown /s /t 1")
+                os.system("shutdown /s /t 1")
                 break
         else:
             flag = 0
